@@ -22,7 +22,7 @@ In 2 dimensions, which is called Laplace's equation.
 then for any given partial derivative in the equation you can write it as its forward difference
 
 $\frac{\partial^2 f}{\partial^2 x} = \frac{f_{i,j+1}-2f_{i,j}+f_{i,j+1}}{(\Delta x)^2}$
-`
+
 where the indices $i,j$ correspond to y and x respectively. It is easy to then expand on this and repeat for the rest of the derivatives.
 Once a all derivatives have been substituted, you find an expression for some $f_{i,j}$ (you may want to solve for one with a plus one
 depending on the equation) and iterate over all the sample points you have untill you reach a decent approcimation of the function at every
