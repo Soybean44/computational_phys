@@ -5,7 +5,7 @@ This is the current list of tasks we have figured out how to do and problems we 
 - [X] Partial Differential Equations (Finite Difference) 
     - [X] Poisson's equation $\nabla V = -\frac{1}{\epsilon_0}\rho$
     - [X] Wave equation $\frac{\partial^2 y}{\partial^2 t} =v^2\frac{\partial^2 y}{\partial^2 x}$
-    - [ ] Schr\"odinger's equation $-\frac{\hbar}{2m}\nabla^2 \psi +V(x) \psi = E \psi$
+    - [ ] Schrödinger's equation $-\frac{\hbar}{2m}\nabla^2 \psi +V(x) \psi = E \psi$
 
 ## Partial differential equations
 Partial differential Equations are typically solved via the finite difference method. 
