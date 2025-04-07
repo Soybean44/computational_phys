@@ -153,6 +153,6 @@ def animate(frame):
     return line,
 # Create animation
 ani = FuncAnimation(fig, animate, frames=Nt, blit=True, interval=dt*1000*skip)
-ani.save('standing_wave.mp4', writer='ffmpeg', fps=1/(dt*skip))
+ani.save('videos/standing_wave.mp4', writer='ffmpeg', fps=1/(dt*skip))
 HTML(ani.to_jshtml())
 ```
