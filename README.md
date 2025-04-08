@@ -34,5 +34,3 @@ where the indices $i,j$ correspond to y and x respectively. It is easy to then e
 Once a all derivatives have been substituted, you find an expression for some $f_{i,j}$ (you may want to solve for one with a plus one
 depending on the equation) and iterate over all the sample points you have untill you reach a decent approcimation of the function at every
 given point.
-
-
