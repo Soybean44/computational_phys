@@ -62,7 +62,7 @@ def update_string(y_old, y):
   y_old[:] = y[:]
   y[:] = y_new[:]
 ```
-Plot the data
+Finally we can plot the data and also view it as an animation
 ```{python, cache=TRUE}
 # Set up the plot
 fig, ax = plt.subplots()
