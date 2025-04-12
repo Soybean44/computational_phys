@@ -3,9 +3,18 @@
 This repo documents my attempts to learn computational physics.
 This is the current list of tasks we have figured out how to do and problems we have solved
 
-- [x] Poisson's equation $\nabla^2 V = -\frac{1}{\epsilon_0}\rho$
-- [x] Wave equation $\frac{\partial^2 y}{\partial^2 t} =v^2\frac{\partial^2 y}{\partial^2 x}$
-- [x] Schrödinger's equation $-\frac{\hbar}{2m}\nabla^2 \psi +V(x) \psi = E \psi$
+- [x] Poisson's equation
+  $$
+  \nabla^2 V = -\frac{1}{\epsilon_0}\rho
+  $$
+- [x] Wave equation
+  $$
+  \frac{\partial^2 y}{\partial^2 t} =v^2\frac{\partial^2 y}{\partial^2 x}
+  $$
+- [x] Schrödinger's equation
+  $$
+  -\frac{\hbar}{2m}\nabla^2 \psi +V(x) \psi = E \psi
+  $$
 - [ ] Tripple pendulum
 
 ## Partial differential equations
