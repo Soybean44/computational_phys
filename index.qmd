@@ -1,9 +1,0 @@
----
-title: "Computational Physics"
-listing:
-  contents: experiments
-  sort: "title asc"
-  type: default
-  fields: [image, title, description]
----
-## Index
