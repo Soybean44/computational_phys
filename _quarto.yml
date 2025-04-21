@@ -20,3 +20,4 @@ format:
     css: styles.css
     toc: true
     embed-resources: true
+    self-contained-math: true

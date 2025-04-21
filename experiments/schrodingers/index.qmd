@@ -2,9 +2,6 @@
 title: Schrödinger's Equation
 jupyter: python3
 image: schrodingers.png
-format:
-  html:
-    theme: ../../mocha.scss
 ---
 Start with imports and setup
 ```{python}
