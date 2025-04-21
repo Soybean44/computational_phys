@@ -1,0 +1,22 @@
+project:
+  type: website
+  pre-render: scripts/render_cpp.py
+
+execute:
+  freeze: auto
+  cache: true
+
+website:
+  title: "Computational Physics"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - about.qmd
+
+format:
+  html:
+    theme: mocha.scss
+    css: styles.css
+    toc: true
+    embed-resources: true

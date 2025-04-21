@@ -1,0 +1,26 @@
+---
+title: Cpp_test
+---
+
+This should test the render cpp script.
+
+```cpp
+extern void render_rect(int x, int y, int w, int h);
+
+int main() {
+  render_rect(0,0,50,50);
+  return 0;
+}
+```
+
+Now we display a canvas with a square
+
+```{=html}
+<canvas id="wasmCanvas" width=400 heigh=400 style="background: black"></canvas>
+<script>
+  const canvas = document.getElementById('wasmCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'red'; 
+  ctx.fillRect(0, 0, 50, 50);
+</script>
+```
