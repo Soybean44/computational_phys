@@ -3,7 +3,6 @@ title: "Computational Physics"
 listing:
   contents: experiments
   sort: "title asc"
-  type: default
-  fields: [image, title, description]
+  template: experiment.ejs
 ---
-## Index
+## Experiments

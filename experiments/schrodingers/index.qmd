@@ -1,7 +1,7 @@
 ---
 title: Schrödinger's Equation
 jupyter: python3
-image: schrodingers.png
+description: $$-\frac{\hbar}{2m}\nabla^2 \psi(x) + V(x) \psi(x) = E \psi(x)$$
 ---
 Start with imports and setup
 ```{python}
