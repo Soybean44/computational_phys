@@ -5,4 +5,45 @@ listing:
   sort: "title asc"
   template: experiment.ejs
 ---
-## Experiments
+## Home Page
+```{=html}
+<style>
+.listing-container {
+    background: var(--bs-gray-900);
+    list-style-type: none; /* Removes bullet points from unordered lists */
+    padding: 1em;            /* Optional: removes default padding */
+    text-align: center;
+}
+.card-link {
+    background: none;
+    color: inherit; /* Use the same color as the surrounding text */
+    text-decoration: none; /* Remove underline */
+    cursor: default; /* Change cursor to default */
+}
+.card-desc {
+    background: none;
+    color: inherit; /* Use the same color as the surrounding text */
+}
+.card-link:hover {
+    background: none;
+    color: inherit; /* Keep the same color on hover */
+    text-decoration: none; /* Keep no underline on hover */
+}
+.list-item {
+    background: var(--bs-default);
+    border: 0.1em;
+    padding: 0.1em 1em 0.5em 1em; 
+    border-radius: 1em;
+    margin: 1em;
+}
+
+.list-item:hover {
+    background: var(--bs-default);
+    border: 0.1em;
+    padding: 0.1em 1em 0.5em 1em; 
+    border-radius: 1em;
+    margin: 1em;
+    color: var(--bs-green);
+}
+</style>
+```

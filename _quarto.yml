@@ -21,3 +21,4 @@ format:
     toc: true
     embed-resources: true
     self-contained-math: true
+    anchor-sections: false
