@@ -1,6 +1,7 @@
 project:
   type: website
   pre-render: scripts/render_cpp.py
+  resources: "*.wasm"
 
 execute:
   freeze: auto
