@@ -47,19 +47,5 @@
     "title": "About",
     "section": "",
     "text": "About this site"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Computational Physics",
-    "section": "",
-    "text": "Home Page\n\n\n\n\n\n\n\n\n\n\n\nCpp_test\n\n  \n\n\n\n\nPoisson’s Equation (Voltage)\n\n \\[\\nabla V = -\\frac{1}{\\epsilon_0}\\rho\\] \n\n\n\n\nSchrödinger’s Equation\n\n \\[-\\frac{\\hbar}{2m}\\nabla^2 \\psi(x) + V(x) \\psi(x) = E \\psi(x)\\] \n\n\n\n\nWave Equation\n\n \\[\\frac{\\partial^2 y}{\\partial^2 t} = \\frac{T}{\\mu} \\frac{\\partial^2 y}{\\partial^2 x}\\] \n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "index.html#home-page",
-    "href": "index.html#home-page",
-    "title": "Computational Physics",
-    "section": "Home Page",
-    "text": "Home Page"
   }
 ]
