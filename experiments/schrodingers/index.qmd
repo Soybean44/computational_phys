@@ -167,18 +167,9 @@ fig = fig.update_layout(scene=dict(xaxis=dict(visible=False),
                               zaxis=dict(visible=False),
                               bgcolor='rgb(0, 0, 0)'),
                   margin=dict(l=0, r=0, b=0, t=0))
-```
-::: {.content-visible unless-format="pdf"}
-```{python}
+
 fig.show()
 ```
-:::
-::: {.content-visible when-format="pdf"}
-```{python}
-
-Image(fig.to_image(format="png"))
-```
-:::
 
 plot the eigenvalues by first converting the units to joules
 
