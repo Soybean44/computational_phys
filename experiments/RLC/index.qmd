@@ -1,0 +1,116 @@
+---
+title: RLC Circuit
+jupyter: python3
+description: $$\frac{1}{s^2LC + sRC + 1}$$
+---
+
+Start with imports
+
+```{python}
+import numpy as np
+from scipy import signal
+import matplotlib.pyplot as plt
+```
+
+An RLC circuit can be described with the language of Laplace Transforms and Transfer Functions. This ammounts to the _Phasor_ representation of circuits.
+
+Take a simple RLC circuit with the impedance 
+
+$$
+Z(s) = R + sL + \frac{1}{sC}
+$$
+
+The transfer function of this circuit is 
+
+$$
+H(s) = \frac{V_{out}}{V_{in}}
+$$
+
+Our output voltage is the capacitor, which is 
+
+$$
+V_c = V_{in} \times \frac{Z_c}{Z(s)} = V_{in} \frac{\frac{1}{sC}}{R + sL + \frac{1}{sC}}
+= V_{in} \frac{1}{s^2LC + sRC + 1}
+$$
+
+Then our final transfer function is 
+
+$$
+H(s) = \frac{V_{in} \frac{1}{s^2LC + sRC + 1}}{V_{in}} = \frac{1}{s^2LC + sRC + 1}
+$$
+
+We can set our circuit values to the following
+
+```{python}
+R = 10.0          # ohms
+L = 1e-3          # henries
+C = 1e-6          # farads
+```
+
+Then define our system like so
+
+```{python}
+num = [1.0]
+den = [L*C, R*C, 1.0] # in descending order of degree
+
+system = signal.TransferFunction(num, den)
+```
+
+The resonant frequency of an RLC circuit is defined as 
+
+$$
+f_{res} = \frac{1}{2\pi \sqrt{LC}}
+$$
+
+In the s-domain, the imaginary component represents angular frequency which allows us to define the resonant frequency at the poles of this function at some given $\omega$. 
+
+We can start by writing he denominator in standard form
+
+$$
+s^2 + \frac{R}{L} s + \frac{1}{LC}
+$$
+
+The resonant frequency makes the denominator 0 (and therefore makes our transfer function blow out to infinity). This means we want to find roots of this function such that they are solely imaginary. The general roots are given by the quadratic formula
+
+$$
+s = \frac{-R/L \pm \sqrt{R^2/L^2 - 4/LC}}{2}
+$$
+
+if this were to be purely imaginary, that means that $R = 0$ (this implies resistance leads to damping and we can never remove resistance physically, which is why we dont blow out to infinity) Then this implies that 
+
+$$
+s = \pm \frac{i}{\sqrt{LC}}
+$$
+
+We then define the resonant frequency at $s = i \omega$, ignoring the sign as negative frequency doesnt change the inherent meaning of the frequency, to get.
+
+$$
+\omega = \frac{1}{\sqrt{LC}}
+$$
+
+Which obviously implies the formula we already found. To actually simulate the system, we can supply a signal to it like so
+
+```{python}
+t = np.linspace(0,1,100)
+omega = 1
+V_in = signal.square(omega*2*np.pi*t) 
+tout, y, x = signal.lsim(system, V_in, t)
+```
+
+Then plot the input as the following
+
+```{python}
+plt.figure()
+plt.plot(t, V_in, label="Input")
+plt.legend()
+plt.show()
+```
+
+And the output as
+
+```{python}
+plt.figure()
+plt.plot(t, y, label="Output")
+plt.legend()
+plt.show()
+```
