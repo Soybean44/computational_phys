@@ -42,9 +42,9 @@ $$
 We can set our circuit values to the following
 
 ```{python}
-R = 10.0          # ohms
-L = 1e-3          # henries
-C = 1e-6          # farads
+R = 100.0          # ohms
+L = 100e-6         # henries
+C = 10e-6          # farads
 ```
 
 Then define our system like so
@@ -91,26 +91,24 @@ $$
 Which obviously implies the formula we already found. To actually simulate the system, we can supply a signal to it like so
 
 ```{python}
-t = np.linspace(0,1,100)
-omega = 1
-V_in = signal.square(omega*2*np.pi*t) 
+freq = 440
+omega = freq*2*np.pi
+t = np.linspace(0,4/freq,100)
+V_in = signal.square(omega*t) 
 tout, y, x = signal.lsim(system, V_in, t)
 ```
 
-Then plot the input as the following
+Then plot the system as the following
 
 ```{python}
 plt.figure()
+plt.title("Voltage Drop of an RLC Circuit")
+plt.xlabel("Time (s)")
+plt.ylabel("Voltage (V)")
 plt.plot(t, V_in, label="Input")
-plt.legend()
-plt.show()
-```
-
-And the output as
-
-```{python}
-plt.figure()
 plt.plot(t, y, label="Output")
-plt.legend()
+plt.legend(loc="lower right")
 plt.show()
 ```
+
+From this you can see we get a realistic simulation of the voltage in an RLC circuit. One further test would be to check if this circuit produces a similar output experimentally, which is something I might consider in the future given the oportunity.

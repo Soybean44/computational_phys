@@ -1,0 +1,323 @@
+{
+  "cells": [
+    {
+      "cell_type": "raw",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: Schrödinger's Equation\n",
+        "description: $$-\\frac{\\hbar}{2m}\\nabla^2 \\psi(x) + V(x) \\psi(x) = E \\psi(x)$$\n",
+        "---"
+      ],
+      "id": "23684b85"
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Start with imports and setup"
+      ],
+      "id": "398a2c85"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import scipy.sparse as sparse\n",
+        "from skimage import measure\n",
+        "import matplotlib.pyplot as plt\n",
+        "from mpl_toolkits.mplot3d import Axes3D\n",
+        "import plotly.graph_objects as go\n",
+        "import numpy as np\n",
+        "import torch\n",
+        "import time\n",
+        "from datetime import timedelta\n",
+        "from IPython.display import Image\n",
+        "device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')"
+      ],
+      "id": "d3c792b2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "## Theory\n",
+        "\n",
+        "Schrödinger's Equation is the equation governing motion at the quantum scale. We have a wavefunction $\\psi(x)$ which satisfies the following differential equation\n",
+        "$$\n",
+        "-\\frac{\\hbar}{2m}\\nabla^2 \\psi(x) + V(x) \\psi(x) = E \\psi(x)\n",
+        "$$\n",
+        "\n",
+        "We can then see that this differential equation actually forms an eigenvector problem or more specifically,\n",
+        "$$\n",
+        "\\hat{H} \\ket{\\psi} = (\\hat{T} + \\hat{V})\\ket{\\psi} = E \\ket{\\psi}\n",
+        "$$\n",
+        "\n",
+        "we can then find the central difference of $\\frac{d^2 \\psi}{dx^2}$, being\n",
+        "$$\n",
+        "\\frac{d^2 \\psi}{dx^2} = \\frac{\\psi_{x-1}-2\\psi_x+\\psi_{x+1}}{(\\Delta x)^2}\n",
+        "$$\n",
+        "\n",
+        "The next step is to recognize our boundary conditions, which for us is $\\psi(0)=\\psi(L)=0$. Then we can represent $\\hat{H}$ as a discrete matrix instead of an arbitrary linear operator, given our finite difference as\n",
+        "$$\n",
+        "\\hat{H} = -\\frac{\\hbar}{2m(\\Delta x)^2}D+V\n",
+        "$$\n",
+        "Where $D$ and $V$ are matrices representing the Laplacian and Potential, represented as such\n",
+        "$$\n",
+        "D = \\begin{pmatrix}\n",
+        "  -2 & 1 & 0 \\\\\n",
+        "  1 & -2 & 1 \\\\\n",
+        "  0 & 1 & -2 \\\\\n",
+        "\\end{pmatrix}, V= \\begin{pmatrix}\n",
+        "  V_1 & 0 & 0 \\\\\n",
+        "  0 & V_2 & 0 \\\\\n",
+        "  0 & 0 & V_3 \\\\\n",
+        "\\end{pmatrix}\n",
+        "$$\n",
+        "Given we have three datapoints each diagonal entry in $V$ is the voltage at that given position. These matrices are then \"extended\" to fit within the number of datapoints we have, making sure to keep the matrix hemertian. \n",
+        "\n",
+        "However what if we want to extend this to higher dimensions. Then we need to take what is known as a *kroneker sum* of the matrix $D$ and use it in its place. It is defined as so\n",
+        "$$\n",
+        "D \\oplus D = D \\otimes I + I \\otimes D\n",
+        "$$\n",
+        "where $\\otimes$ is the kroneker product and is defined as \n",
+        "$$\n",
+        "D \\otimes I = \n",
+        "\\begin{pmatrix}\n",
+        "D & 0 & 0\\\\\n",
+        "0 & D & 0\\\\\n",
+        "0 & 0 & D\\\\\n",
+        "\\end{pmatrix}\n",
+        "$$\n",
+        "then for 2 dimensions we just use one kroneker sum and for 3 dimensions we can use 3 as so\n",
+        "$$\n",
+        "D \\oplus D \\oplus D\n",
+        "$$\n",
+        "which happens to work out. Then we can flatten our grid of sample points and make it a simple n dimensional vector our final equation then becomes\n",
+        "$$\n",
+        "\\left[\\frac{\\hbar}{2m}(D\\oplus D\\oplus D)+V\\right]\\vec{\\psi} = E \\vec{\\psi}\n",
+        "$$\n",
+        "which we can simplify using natural units, setting $\\hbar = 1$ and as well making the entries in $V$ return $m\\delta^2V(x,y,z)$ as well as the energy eigenvalues being now $m\\delta^2E$, where $\\delta$ is a generalized finite differential for all directions in space. This becomes the following equation then \n",
+        "$$\n",
+        "\\left[\\frac{1}{2}(D\\oplus D\\oplus D)+V\\right]\\vec{\\psi} = m\\delta^2E \\vec{\\psi}\n",
+        "$$\n",
+        "Noting that the matrix $V$ itself is returning a different value now of $m\\delta^2V(x)$\n",
+        "\n",
+        "## Calculations\n",
+        "\n",
+        "With this we can finally start on the calculations. Start by defining a Potential (Noting this is really potenetial energy and not electric potential). The potential is then the potential energy of an electron in an atom of hydrogen which is \n",
+        "$$\n",
+        "V(r) = -\\frac{e^2}{4 \\pi \\epsilon_0 r} = -\\frac{1}{ma_0 r},\\, a_0 = \\frac{4\\pi\\epsilon_0\\hbar^2}{e^2m}\\approx 5.29 \\times 10^-11m\n",
+        "$$\n",
+        "This allows us to define the radius in terms of the bohr radius $a_0$. We can then rearange the equation to solve for $m\\delta^2V(x)$ and write our function as \n",
+        "$$\n",
+        "m\\delta^2V(x)= -\\frac{\\delta^2}{a_0 r} = -\\frac{(\\delta/a_0)^2}{(r/a_0)}\n",
+        "$$\n",
+        "Changing the units to a_0 by dividing by $a_0/a_0$\n",
+        "\n",
+        "Start by defining values for our grid and delta"
+      ],
+      "id": "424d68fb"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "N = 120\n",
+        "# Note that both the coordinates and delta are measured in units of a_0\n",
+        "X,Y,Z = np.mgrid[-25:25:N*1j,-25:25:N*1j,-25:25:N*1j] # create a grid from -25 to 25 a_0\n",
+        "delta = np.diff(X[:,0,0])[0] # get the step size"
+      ],
+      "id": "0445b19f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Now we write a function to get the potential as follows"
+      ],
+      "id": "8ecb487b"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def get_potential(x,y,z):\n",
+        "  # since the units are in a_0 we can treat the a_0 in the equation defined above as 1\n",
+        "  # As well we add 1e-10 to the value of r to avoid any infinities at r=0\n",
+        "  return -delta**2/np.sqrt(x**2+y**2+z**2 + 1e-10)\n",
+        "\n",
+        "V0 = get_potential(X,Y,Z) # This creates a 3d grid of potentials\n",
+        "V0.shape # shape should be n*n*n we really want this to be a diagonal matrix in M_{n^3}(R)"
+      ],
+      "id": "2a826928",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We want to get our proper $V$ matrix which we can do along with our $D$ matrix"
+      ],
+      "id": "75d63940"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "diag = np.ones([N]) # create a vector of ones in R^n\n",
+        "diags = np.array([diag, -2*diag, diag]) # create a n*3 matrix representing the diagonals in D\n",
+        "D = sparse.spdiags(diags, np.array([-1,0,1]), N, N) # Create D from the diags\n",
+        "T = -1/2 * sparse.kronsum(sparse.kronsum(D,D), D) # Create T from D\n",
+        "V = sparse.diags(V0.reshape(N**3), (0)) # Create a sparse matrix from V0\n",
+        "H = T+V # Finally create the hamiltonian matrix\n",
+        "H.shape # Print out the shape of H which should be (N^3,N^3)"
+      ],
+      "id": "8ef51149",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Convert H so that it is on the gpu. This makes finding the eigenvalues easier"
+      ],
+      "id": "12062524"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "H = H.tocoo()\n",
+        "H = torch.sparse_coo_tensor(indices=torch.tensor([H.row, H.col]), values=torch.tensor(H.data), size=H.shape).to(device)"
+      ],
+      "id": "0b617421",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Finally we can compute the eigenvalues/eigenvectors as follows"
+      ],
+      "id": "71d27f72"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "num_states = 20 # number of states to calculate\n",
+        "start = time.perf_counter()\n",
+        "eigenvalues, eigenvectors = torch.lobpcg(H, k=num_states, largest=False)\n",
+        "end = time.perf_counter()\n",
+        "elapsed = timedelta(seconds = end-start)\n",
+        "print(\"Time to calculate:\", elapsed)"
+      ],
+      "id": "33af321d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Here is a function to get a an eigenvector given an energy level"
+      ],
+      "id": "77e30098"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def get_e(n):\n",
+        "    return eigenvectors.T[n].reshape((N,N,N)).cpu().numpy()"
+      ],
+      "id": "448807d9",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "We can compute an object given a certain energy level and plot it"
+      ],
+      "id": "a6ab5e50"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "eigenstate = 6 # Eigenstate to display\n",
+        "verts, faces, _, _ = measure.marching_cubes(get_e(eigenstate)**2, 1e-6, spacing=(0.1, 0.1, 0.1))\n",
+        "intensity = np.linalg.norm(verts, axis=1)\n",
+        "\n",
+        "fig = go.Figure(data=[go.Mesh3d(x=verts[:, 0], y=verts[:, 1], z=verts[:, 2], \n",
+        "                                i=faces[:, 0], j=faces[:, 1], k=faces[:, 2],\n",
+        "                                intensity=intensity,\n",
+        "                                colorscale='Agsunset',\n",
+        "                                opacity=0.5)])\n",
+        "\n",
+        "fig = fig.update_layout(scene=dict(xaxis=dict(visible=False),\n",
+        "                              yaxis=dict(visible=False),\n",
+        "                              zaxis=dict(visible=False),\n",
+        "                              bgcolor='rgb(0, 0, 0)'),\n",
+        "                  margin=dict(l=0, r=0, b=0, t=0))\n",
+        "\n",
+        "fig.show()"
+      ],
+      "id": "4747be47",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "plot the eigenvalues by first converting the units to joules"
+      ],
+      "id": "ff7cf493"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "hbar = 1.055e-34\n",
+        "a0 = 5.29e-11\n",
+        "m = 9.11e-31 # Mass of an electron\n",
+        "J_to_eV = 6.242e18 # convert from Joules to eV\n",
+        "conversion = hbar**2 / m / delta**2 / a0**2 * J_to_eV \n",
+        "converted_eigenvalues = eigenvalues.cpu() * conversion\n",
+        "\n",
+        "plt.figure()\n",
+        "plt.scatter(list(range(num_states)), converted_eigenvalues, label=\"Enegy Eigenstates\")\n",
+        "plt.xlim(0,20)\n",
+        "plt.title(\"Eigenstates of a Hydrogen atom (Orbitals)\")\n",
+        "plt.xlabel(\"Energy Level\")\n",
+        "plt.ylabel(\"Energy Eigenvalue (eV)\")\n",
+        "plt.legend()\n",
+        "plt.show()"
+      ],
+      "id": "292f931a",
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/usr/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
