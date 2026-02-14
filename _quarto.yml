@@ -1,11 +1,9 @@
 project:
   type: website
-  pre-render: scripts/render_cpp.py
-  resources: "*.wasm"
 
 execute:
   freeze: auto
-  cache: true
+#  cache: true
 
 website:
   title: "Computational Physics"
@@ -21,6 +19,6 @@ format:
     theme: mocha.scss
     css: styles.css
     toc: true
-    embed-resources: true
+    # embed-resources: true
     self-contained-math: true
     anchor-sections: false
